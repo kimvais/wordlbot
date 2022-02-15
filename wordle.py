@@ -1,3 +1,5 @@
+import json
+import random
 import re
 from collections import (
     Counter,
@@ -87,25 +89,38 @@ def main():
     print(
         "When prompted for feedback, give an uppercase character for character in correct position (\U0001f7e9), lowercase in incorrect position (\U0001f7e8), and a non-letter for eliminated ones (\u2588)."
     )
-    letters = int(input("How many letters?"))
+    try:
+        letters = int(input("How many letters? (4-11) [5]:"))
+    except Exception:
+        letters = 5
     state = State(letters)
-    words = list(get_words(letters))
+    if letters == 5:
+        with open("official_wordlist.json") as f:
+            words = json.load(f)
+    else:
+        words = list(get_words(letters))
     while True:
         counts = get_counts(words)
         words.sort(key=partial(score_candidate, counts), reverse=True)
         if len(words) == 1:
             print(f"The word is {words[0].upper()}")
             break
-        elif len(state.known) == 4 or len(words) < 10:
+        if len(state.known) == 4 or len(words) < 10:
             print(f"The word is one of {', '.join(words).upper()}")
+        elif len(words) > 100:
+            ideas = ", ".join(random.sample(words[:20], 5)).upper()
+            print(f'{len(words)} possible words remaining, some best guesses: {ideas}')
         else:
-            print(f'Some good guesses would be: {", ".join(words[:5]).upper()} ({len(words)} words remaining)')
+            print(f'Your best guesses would be: {", ".join(words[:5]).upper()} ({len(words)} words remaining)')
         print()
         guess = input("Your guess was: ").lower()
-        if not guess.isalpha():
+        if len(guess) != state.letters or not guess.isalpha():
             print("That's not a valid guess...")
             continue
-        feedback = input("Feedback was: ")
+        feedback = input("Feedback was  : ")
+        if len(feedback) != state.letters:
+            print("Invalid feedback length")
+            continue
         parse(guess, feedback, state)
         words = list(filter_words(words, state))
         if len(state.known) == state.letters:
