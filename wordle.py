@@ -7,7 +7,8 @@ from functools import partial
 
 
 class State:
-    def __init__(self):
+    def __init__(self, letters=5):
+        self.letters = letters
         self.known = dict()
         self.eliminated = set()
         self.not_in_position = defaultdict(set)
@@ -16,15 +17,17 @@ class State:
         return f'Eliminated: {self.eliminated}, Known: {self.known}, Not in position: {dict(self.not_in_position)}'
 
 
-def get_words():
-    with open("corpus.txt") as f:
+def get_words(n):
+    with open("words_alpha.txt") as f:
         for line in f:
-            yield line.strip()
+            word = line.strip()
+            if len(word) == n:
+                yield line.strip()
 
 
 def make_pattern(state):
     yield '^'
-    for idx in range(5):
+    for idx in range(state.letters):
         if c := state.known.get(idx):
             yield f'{c}'
         else:
@@ -54,7 +57,8 @@ def filter_words(words, state):
 
 
 def get_counts(corpus):
-    counters = [Counter() for _ in range(5)]
+    letters = len(corpus[0])
+    counters = [Counter() for _ in range(letters)]
     for word in corpus:
         for i, c in enumerate(word):
             counters[i][c] += 1
@@ -80,11 +84,12 @@ def score_candidate(counts, word):
 
 
 def main():
-    words = list(get_words())
-    state = State()
     print(
         "When prompted for feedback, give an uppercase character for character in correct position (\U0001f7e9), lowercase in incorrect position (\U0001f7e8), and a non-letter for eliminated ones (\u2588)."
     )
+    letters = int(input("How many letters?"))
+    state = State(letters)
+    words = list(get_words(letters))
     while True:
         counts = get_counts(words)
         words.sort(key=partial(score_candidate, counts), reverse=True)
@@ -94,7 +99,7 @@ def main():
         elif len(state.known) == 4 or len(words) < 10:
             print(f"The word is one of {', '.join(words).upper()}")
         else:
-            print(f'Some good guesses would be: {", ".join(words[:5]).upper()} out of {len(words)} words next')
+            print(f'Some good guesses would be: {", ".join(words[:5]).upper()} ({len(words)} words remaining)')
         print()
         guess = input("Your guess was: ").lower()
         if not guess.isalpha():
@@ -103,7 +108,7 @@ def main():
         feedback = input("Feedback was: ")
         parse(guess, feedback, state)
         words = list(filter_words(words, state))
-        if len(state.known) == 5:
+        if len(state.known) == state.letters:
             break
 
 
