@@ -89,7 +89,7 @@ def main():
         counts = get_counts(words)
         words.sort(key=partial(score_candidate, counts), reverse=True)
         if len(words) == 1:
-            print(f"The word is {words[0]}")
+            print(f"The word is {words[0].upper()}")
             break
         elif len(state.known) == 4 or len(words) < 10:
             print(f"The word is one of {', '.join(words).upper()}")
