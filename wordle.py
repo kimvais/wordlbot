@@ -108,10 +108,10 @@ def main():
         if len(state.known) == 4 or len(words) < 10:
             print(f"The word is one of {', '.join(words).upper()}")
         elif len(words) > 100:
-            ideas = ", ".join(random.sample(words[:20], 5)).upper()
-            print(f'{len(words)} possible words remaining, some best guesses: {ideas}')
+            ideas = ", ".join(random.sample(words[1:20], 5)).upper()
+            print(f'{len(words)} possible words remaining, best guess is {words[0].upper()}, other good ones are: {ideas}')
         else:
-            print(f'Your best guesses would be: {", ".join(words[:5]).upper()} ({len(words)} words remaining)')
+            print(f'Your best guess would be {words[0].upper()}, but {", ".join(words[1:6]).upper()} are fine too. ({len(words)} words remaining)')
         print()
         guess = input("Your guess was: ").lower()
         if len(guess) != state.letters or not guess.isalpha():
