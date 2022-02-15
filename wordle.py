@@ -88,7 +88,13 @@ def main():
     while True:
         counts = get_counts(words)
         words.sort(key=partial(score_candidate, counts), reverse=True)
-        print(f'You should guess any of {", ".join(words[:5]).upper()} out of {len(words)} words next')
+        if len(words) == 1:
+            print(f"The word is {words[0]}")
+            break
+        elif len(state.known) == 4 or len(words) < 10:
+            print(f"The word is one of {', '.join(words).upper()}")
+        else:
+            print(f'Some good guesses would be: {", ".join(words[:5]).upper()} out of {len(words)} words next')
         print()
         guess = input("Your guess was: ").lower()
         if not guess.isalpha():
