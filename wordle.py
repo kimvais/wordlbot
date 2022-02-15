@@ -91,7 +91,8 @@ def main():
         print(f'You should guess any of {", ".join(words[:5]).upper()} out of {len(words)} words next')
         print()
         guess = input("Your guess was: ").lower()
-        if not guess.islower():
+        if not guess.isalpha():
+            print("That's not a valid guess...")
             continue
         feedback = input("Feedback was: ")
         parse(guess, feedback, state)
