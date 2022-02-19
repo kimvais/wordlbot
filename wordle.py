@@ -99,6 +99,7 @@ def main():
             words = json.load(f)
     else:
         words = list(get_words(letters))
+    full_corpus = words.copy()
     while True:
         counts = get_counts(words)
         words.sort(key=partial(score_candidate, counts), reverse=True)
@@ -106,7 +107,11 @@ def main():
             print(f"The word is {words[0].upper()}")
             break
         if len(state.known) == 4 or len(words) < 10:
+            letters_to_eliminate = set.union(*(set(x) for x in words)) - (set(state.known.values()) | set.union(*state.not_in_position.values()))
+            best_for_elimination = sorted(full_corpus, key=lambda x: len(set(x).intersection(letters_to_eliminate)), reverse=True)[0].upper()
             print(f"The word is one of {', '.join(words).upper()}")
+            if len(words) > 2:
+                print(f"You should guess {best_for_elimination} to eliminate most options.")
         elif len(words) > 100:
             ideas = ", ".join(random.sample(words[1:20], 5)).upper()
             print(f'{len(words)} possible words remaining, best guess is {words[0].upper()}, other good ones are: {ideas}')
