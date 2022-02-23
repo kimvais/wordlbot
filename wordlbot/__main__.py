@@ -1,4 +1,7 @@
 import json
+import lzma
+import os
+import pathlib
 import random
 import re
 from collections import (
@@ -6,6 +9,10 @@ from collections import (
     defaultdict,
 )
 from functools import partial
+
+OFFICIAL_WORDLIST_FN = "official_wordlist.json.xz"
+ROOTPATH = pathlib.Path(os.path.dirname(os.path.abspath(__file__)))
+WORDS_FN = "words.txt.xz"
 
 
 class State:
@@ -20,11 +27,11 @@ class State:
 
 
 def get_words(n):
-    with open("words_alpha.txt") as f:
+    with lzma.open(ROOTPATH / WORDS_FN) as f:
         for line in f:
-            word = line.strip()
+            word = line.decode('utf-8').strip()
             if len(word) == n:
-                yield line.strip()
+                yield word
 
 
 def make_pattern(state):
@@ -95,7 +102,7 @@ def main():
         letters = 5
     state = State(letters)
     if letters == 5:
-        with open("official_wordlist.json") as f:
+        with lzma.open(ROOTPATH / OFFICIAL_WORDLIST_FN, "r") as f:
             words = json.load(f)
     else:
         words = list(get_words(letters))
@@ -107,16 +114,23 @@ def main():
             print(f"The word is {words[0].upper()}")
             break
         if len(state.known) == 4 or len(words) < 10:
-            letters_to_eliminate = set.union(*(set(x) for x in words)) - (set(state.known.values()) | set.union(*state.not_in_position.values()))
-            best_for_elimination = sorted(full_corpus, key=lambda x: len(set(x).intersection(letters_to_eliminate)), reverse=True)[0].upper()
+            letters_to_eliminate = set.union(*(set(x) for x in words)) - (
+                    set(state.known.values()) | set.union(*state.not_in_position.values()))
+            best_for_elimination = \
+                sorted(full_corpus, key=lambda x: len(set(x).intersection(letters_to_eliminate)), reverse=True)[
+                    0].upper()
             print(f"The word is one of {', '.join(words).upper()}")
             if len(words) > 2:
                 print(f"You should guess {best_for_elimination} to eliminate most options.")
         elif len(words) > 100:
             ideas = ", ".join(random.sample(words[1:20], 5)).upper()
-            print(f'{len(words)} possible words remaining, best guess is {words[0].upper()}, other good ones are: {ideas}')
+            print(
+                f'{len(words)} possible words remaining, best guess is {words[0].upper()}, other good ones are: {ideas}'
+            )
         else:
-            print(f'Your best guess would be {words[0].upper()}, but {", ".join(words[1:6]).upper()} are fine too. ({len(words)} words remaining)')
+            print(
+                f'Your best guess would be {words[0].upper()}, but {", ".join(words[1:6]).upper()} are fine too. ({len(words)} words remaining)'
+            )
         print()
         guess = input("Your guess was: ").lower()
         if len(guess) != state.letters or not guess.isalpha():
