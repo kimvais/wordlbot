@@ -115,7 +115,7 @@ def main():
             break
         if len(state.known) == 4 or len(words) < 10:
             letters_to_eliminate = set.union(*(set(x) for x in words)) - (
-                    set(state.known.values()) | set.union(*state.not_in_position.values()))
+                    set(state.known.values()) | set.union(*state.not_in_position.values())) if state.not_in_position else set()
             best_for_elimination = \
                 sorted(full_corpus, key=lambda x: len(set(x).intersection(letters_to_eliminate)), reverse=True)[
                     0].upper()
